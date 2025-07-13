@@ -4,6 +4,7 @@ A Python project to represent, validate, and solve Sudoku puzzles using human-st
 Eventually extensible to support variants like Killer Sudoku.
 
 ## Project Structure
+```
 sudoku_solver/
 ├── main.py # Entry point to load and interact with puzzles
 ├── puzzle.json # Sample puzzle data
@@ -16,6 +17,7 @@ sudoku_solver/
 ├── solver/ # Logical solving strategies
 │ ├── solver.py
 │ └── init.py
+```
 
 ## Project Goals
 - Represent Sudoku puzzles with constraint validation  
