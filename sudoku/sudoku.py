@@ -1,5 +1,6 @@
 from typing import List, Callable
 import json
+import exceptions
 
 class Puzzle:
     def __init__(self, file: str):
@@ -171,13 +172,13 @@ class Puzzle:
             str | None: An error message if the update is invalid; None if successful.
         """
         if val not in [0,1,2,3,4,5,6,7,8,9]:
-            return "Invalid Value"
+            raise exceptions.InvalidValue()
         
         if self.mask[r][c] == False:
-            return "Cannot Change Value"
+            raise exceptions.FixedValue()
         
         prev = self.board[r][c]
-        box = c%3 + (r%3 * 3) # Within a box
+        box = c%3 + (r%3 * 3) # Within a box list
         b = self.get_boxIndex(r,c) # box index
 
         self.rows[r][c] = val
@@ -191,7 +192,7 @@ class Puzzle:
         self.rows[r][c] = prev
         self.columns[c][r] = prev
         self.boxes[box][b] = prev
-        return "Conflicting Value"
+        raise exceptions.ConflictValue()
         
     def is_solved(self) -> bool:
         """
