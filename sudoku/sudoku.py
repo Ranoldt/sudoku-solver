@@ -14,10 +14,11 @@ class Puzzle:
         """
         with open(file, "r") as f:
             self.board = json.load(f)
-        self.rows = self.makeDict(self.get_row)
-        self.columns = self.makeDict(self.get_column)
-        self.boxes = self.makeDict(self.get_box)
-        self.mask = self.get_mask()
+        # self.rows = self.makeDict(self.get_row)
+        # self.columns = self.makeDict(self.get_column)
+        # self.boxes = self.makeDict(self.get_box)
+        self.mask = self.get_usable_mask()
+        self.row_mask, self.col_mask, self.box_mask = self.get_bit_masks()
 
     def __str__(self) -> str:
         """
@@ -37,7 +38,24 @@ class Puzzle:
             s.append("\n" + "_" * 37 + "\n")
         return "".join(s)
     
-    def get_mask(self) -> List[List[bool]]:
+    def get_bit_masks(self):
+        row = [0] * 9
+        col = [0] * 9
+        box = [0] * 9
+
+        for r in range(9):
+            for c in range(9):
+                val = self.board[r][c]
+                if val != 0:
+                    b = self.get_boxIndex(r,c)
+                    bit = 1 << val
+                    row[r] |= bit
+                    col[c] |= bit
+                    box[b] |= bit
+        return row, col, box
+
+    
+    def get_usable_mask(self) -> List[List[bool]]:
         """
         Generates a mask indicating which cells are editable in the Sudoku board.
 
@@ -191,7 +209,7 @@ class Puzzle:
         
         self.rows[r][c] = prev
         self.columns[c][r] = prev
-        self.boxes[box][b] = prev
+        self.boxes[b][box] = prev
         raise exceptions.ConflictValue()
         
     def is_solved(self) -> bool:
