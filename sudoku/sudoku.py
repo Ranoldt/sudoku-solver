@@ -1,4 +1,4 @@
-from typing import List, Callable
+from typing import Tuple, List, Callable
 import json
 import exceptions
 
@@ -38,7 +38,13 @@ class Puzzle:
             s.append("\n" + "_" * 37 + "\n")
         return "".join(s)
     
-    def get_bit_masks(self):
+    def get_bit_masks(self) -> Tuple[List[int], List[int], List[int]]:
+        """
+        Builds and returns bitmask representations for all rows, columns, and 3x3 boxes in the Sudoku board.
+
+        Each mask is an integer where bit v (1 << v) is set if digit v (1–9) is present in that row, column, or box.
+        These masks allow O(1) checks to determine whether a value can be legally placed in a given cell.
+        """
         row = [0] * 9
         col = [0] * 9
         box = [0] * 9
@@ -144,31 +150,35 @@ class Puzzle:
             lst += self.board[row + i][column: column+3]
         return lst
 
-    def is_valid(self, row_index: int, column_index: int) -> bool:
+    def is_valid(self, row_index: int, column_index: int, val: int) -> bool:
         """
-        Checks if the row, column, and box at the given cell are currently valid.
+        Returns True if placing `val` at (row_index, column_index) would not violate Sudoku constraints.
 
-        This method is typically called after a board update. It builds lists of the non-zero values
-        in the corresponding row, column, and 3x3 box. If any of those lists contain duplicates, 
-        the state is considered invalid.
+        This is a fast O(1) legality check using bitmasks:
+        it ensures `val` (1-9) is not already present in the target row, column, or 3x3 box.
+        A value of 0 is treated as "clear the cell" and is always constraint-valid.
 
         Parameters:
-            row_index (int): The row index (0-8).
-            column_index (int): The column index (0-8).
+            row_index (int): Row index (0-8).
+            column_index (int): Column index (0-8).
+            val (int): Value to place (0-9). Use 0 to clear the cell.
 
         Returns:
-            bool: True if all related units are valid (no duplicates), False otherwise.
+            bool: True if the move is allowed by Sudoku rules, False otherwise.
         """
-        box_index = self.get_boxIndex(row_index, column_index)
-        row = [val for val in self.rows[row_index] if val != 0]
-        column  = [val for val in self.columns[column_index] if val != 0]
-        box = [val for val in self.boxes[box_index] if val != 0]
+        if val == 0:
+            return True
+        
+        if self.board[row_index][column_index] == val:
+            return True
 
-        if len(row) != len(set(row)):
+        box_index = self.get_boxIndex(row_index, column_index)
+        bit = 1 << val
+        if self.row_mask[row_index] & bit:
             return False
-        if len(column) != len(set(column)):
+        if self.col_mask[column_index] & bit:
             return False
-        if len(box) != len(set(box)):
+        if self.box_mask[box_index] & bit:
             return False
         return True
 
