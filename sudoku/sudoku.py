@@ -14,9 +14,6 @@ class Puzzle:
         """
         with open(file, "r") as f:
             self.board = json.load(f)
-        # self.rows = self.makeDict(self.get_row)
-        # self.columns = self.makeDict(self.get_column)
-        # self.boxes = self.makeDict(self.get_box)
         self.mask = self.get_usable_mask()
         self.row_mask, self.col_mask, self.box_mask = self.get_bit_masks()
 
@@ -74,24 +71,6 @@ class Puzzle:
         for lst in self.board:
             res.append([val == 0 for val in lst])
         return res
-
-    def makeDict(self, func: Callable[[int], List[int]]) -> dict[int, List[int]]:
-        """
-        Helper method to generate a dictionary mapping indices to Sudoku units (rows, columns, or boxes).
-
-        The dictionary keys are integers (0-8), and the values are lists returned by the provided function.
-
-        Parameters:
-            func (Callable[[int], List[int]]): A function that takes an index and returns a 1D list 
-            representing a row, column, or box.
-
-        Returns:
-            dict[int, List[int]]: A dictionary mapping index to the corresponding unit.
-        """
-        d = {}
-        for i in range(9):
-            d[i] = func(i)
-        return d
 
     def get_row(self, index: int) -> list[int]:
         """
@@ -204,23 +183,37 @@ class Puzzle:
         
         if self.mask[r][c] == False:
             raise exceptions.FixedValue()
-        
+
+
         prev = self.board[r][c]
-        box = c%3 + (r%3 * 3) # Within a box list
-        b = self.get_boxIndex(r,c) # box index
+        b = self.get_boxIndex(r, c)
 
-        self.rows[r][c] = val
-        self.columns[c][r] = val
-        self.boxes[b][box] = val
+        # remove previous value from masks if cell already had one
+        if prev != 0:
+            prev_bit = 1 << prev
+            self.row_mask[r] &= ~prev_bit
+            self.col_mask[c] &= ~prev_bit
+            self.box_mask[b] &= ~prev_bit
 
-        if self.is_valid(r,c, val):
-            self.board[r][c] = val
-            return None
-        
-        self.rows[r][c] = prev
-        self.columns[c][r] = prev
-        self.boxes[b][box] = prev
-        raise exceptions.ConflictValue()
+        # check if new value is valid
+        if not self.is_valid(r, c, val):
+            # restore previous masks
+            if prev != 0:
+                self.row_mask[r] |= prev_bit
+                self.col_mask[c] |= prev_bit
+                self.box_mask[b] |= prev_bit
+            raise exceptions.ConflictValue()
+
+        # update board
+        self.board[r][c] = val
+
+        # add new value to masks
+        if val != 0:
+            bit = 1 << val
+            self.row_mask[r] |= bit
+            self.col_mask[c] |= bit
+            self.box_mask[b] |= bit
+
         
     def is_solved(self) -> bool:
         """
