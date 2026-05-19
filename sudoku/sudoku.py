@@ -1,4 +1,4 @@
-from typing import Tuple, List, Callable
+from typing import Tuple, List
 import json
 import exceptions
 
