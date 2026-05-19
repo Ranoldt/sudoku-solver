@@ -213,7 +213,7 @@ class Puzzle:
         self.columns[c][r] = val
         self.boxes[b][box] = val
 
-        if self.is_valid(r,c):
+        if self.is_valid(r,c, val):
             self.board[r][c] = val
             return None
         
