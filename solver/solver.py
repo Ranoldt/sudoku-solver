@@ -76,6 +76,31 @@ class LogicSolver:
                 
         return False
     
+    def hidden_single_row(self) ->bool:
+
+        candidates = self.get_candidates()
+
+        for r in range(9):
+            freq = {i: [] for i in range(1, 10)}
+
+            for c in range(9):
+                
+                for val in candidates[r][c]:
+                    freq[val].append((r, c))
+        
+            for val in range(1, 10):
+                if len(freq[val]) == 1:
+                    r, c = freq[val][0]
+                    self.puzzle.update(r,c,val)
+                    return True
+                
+        return False
+    
+    
+        
+
+
+    
     def solve_step(self) -> bool:
         """
         Attempts to make one logical solving move.
