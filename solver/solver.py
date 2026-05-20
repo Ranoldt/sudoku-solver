@@ -12,6 +12,7 @@ class LogicSolver:
             and validation logic.
         """
         self.puzzle = puzzle
+        self.steps = []
 
     def get_candidates(self) -> List[List[List[int]]]:
         """
@@ -63,6 +64,14 @@ class LogicSolver:
                 if len(candidates[r][c]) == 1:
                     val = candidates[r][c][0]
                     self.puzzle.update(r, c, val)
+
+                    self.steps.append({
+                        "technique": "Naked Single",
+                        "row": r,
+                        "col": c,
+                        "value": val
+                    })
+
                     return True
                 
         return False
@@ -79,7 +88,7 @@ class LogicSolver:
 
         return False
     
-    def solve(self):
+    def solve(self) -> bool:
         """
         Repeatedly applies solving techniques until the puzzle is solved
         or no more progress can be made.

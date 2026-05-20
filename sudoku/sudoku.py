@@ -1,6 +1,6 @@
 from typing import Tuple, List
 import json
-import exceptions
+from . import exceptions
 
 class Puzzle:
     def __init__(self, file: str):
